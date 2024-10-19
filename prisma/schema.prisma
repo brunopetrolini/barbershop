@@ -12,3 +12,66 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id        String    @id @default(cuid())
+  email     String
+  name      String
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  bookings  Booking[]
+
+  @@map("users")
+}
+
+model Barbershop {
+  id          String   @id @default(cuid())
+  name        String
+  address     String
+  phones      String[]
+  description String
+  imageURL    String   @map("image_url")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  services BarbershopService[]
+  bookings Booking[]
+
+  @@map("barbershops")
+}
+
+model BarbershopService {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  imageURL    String   @map("image_url")
+  price       Decimal  @db.Decimal(10, 2)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  barbershopId String     @map("barbershop_id")
+  barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
+
+  bookings Booking[]
+
+  @@map("barbershop_services")
+}
+
+model Booking {
+  id        String   @id @default(cuid())
+  price     Decimal  @db.Decimal(10, 2)
+  date      DateTime
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id])
+
+  barbershopId String     @map("barbershop_id")
+  barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
+
+  serviceId String            @map("service_id")
+  service   BarbershopService @relation(fields: [serviceId], references: [id])
+
+  @@map("bookings")
+}
